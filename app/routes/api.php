@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 
 Route::prefix('')->group(function() {
 //    Route::ApiResource('posts', PostController::class);
-    Route::get('logout', [AuthController::class, 'logout'])->middleware(['auth:sanctum']);
+    Route::get('logout', [AuthController::class, 'logout']);
 });
 
 Route::prefix('')->group(function() {

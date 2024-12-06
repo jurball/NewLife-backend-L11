@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use phpDocumentor\Reflection\DocBlock\Tags\Author;
 
 class AuthController extends Controller
 {
@@ -94,16 +95,15 @@ class AuthController extends Controller
 
     public function logout()
     {
-//        $user = CustomUser::query()->where('email', $request->email)->first();
+        $auth = Auth::guard('sanctum');
 
-        if(!Auth::check()){
+        if(!$auth->check()){
             return response()->json([
                'message' => 'Login failed'
             ], 403);
         }
 
-        Auth::user()->currentAccessToken()->delete();
-
+        $auth->user()->tokens()->delete();
         return response()->json([
             'success' => true,
             'message' => 'Logout'
