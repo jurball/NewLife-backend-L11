@@ -17,7 +17,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $rules = [
-            'email' => ['required', 'string', 'email', 'unique:custom_users'],
+            'email' => ['required', 'string', 'email', 'unique:users'],
             'password' => ['required', 'string', 'min:3',   'regex:/[a-z]/', // Должна быть хотя бы одна строчная буква
                                                             'regex:/[A-Z]/',  // Должна быть хотя бы одна прописная буква
                                                             'regex:/[0-9]/',],
