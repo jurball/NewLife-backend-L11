@@ -5,12 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCustomUserRequest;
 use App\Http\Requests\LoginCustomUserRequest;
-use App\Models\CustomUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
-use phpDocumentor\Reflection\DocBlock\Tags\Author;
 
 class AuthController extends Controller
 {
