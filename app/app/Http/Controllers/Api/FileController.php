@@ -2,19 +2,35 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\files;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use function PHPSTORM_META\map;
 
 class FileController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $user = Auth::guard('sanctum');
+        $data = files::where('user_id', $user->id())->get();
 
+        foreach ($data as $file) {
+            $response[] = [
+                'file_id' => $file->ids,
+                'name' => $file->original_name,
+                'url' => $request->getSchemeAndHttpHost() . '/files/' . $file->ids,
+                'access' => [],
+            ];
+        }
+
+        return response()->json($response ?? []);
     }
 
     /**
@@ -22,67 +38,68 @@ class FileController
      */
     public function uploadFile(Request $request)
     {
-        $request->validate([
-            'file' => 'required|file|mimes:png,jpg,jpeg,gif|max:2048', // Пример для изображений
-        ]);
+        $user = Auth::guard('sanctum');
+        $user_id = $user->id();
 
-        if (!$request->hasFile('file')) {
+        // Файл был загружен?
+        if (!$request->hasFile('files')) {
             return response()->json(['message' => 'No file uploaded'], 400);
         }
 
-        $file = $request->file('file');
+        // Валидация входных данных
+        $validator = Validator::make($request->all(), [
+            'files' => 'required|file|mimes:png,jpg,jpeg,gif|max:2048',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        $file = $request->file('files');
+        $extension = pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION); // Расширение
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+        // проверяет, был ли файл успешно загружен (без ошибок).
         if (!$file->isValid()) {
-            return response()->json(['message' => 'File is not valid'], 400);
+            return response()->json([
+                'success' => false,
+                'message' => 'File not loaded',
+                'name' => $originalName,
+            ]);
         }
 
-        $extension = $file->getClientOriginalExtension();
-        $originalName = $file->getClientOriginalName();
-
-        // проверка на существуюищй файл
-        if(Storage::path('files/' . $originalName)){
-            // Если файл с таким именем существует, добавляем (i) к имени
-            $name = pathinfo(Storage::path('files/' . $originalName), PATHINFO_FILENAME);
-            $i = 1;
-            $newName = $name . ' (' . $i . ').' . $extension;
-
-            // Проверяем, существует ли уже такой файл с индексом
-            while (files::where('original_name', $newName)->exists()) {
-                $i++;
-                $newName = $name . ' (' . $i . ').' . $extension;
-            }
-        } else {
-            $newName = $originalName;
+        $newName = $file->getClientOriginalName();
+        $counter = 1;
+        while (Storage::disk('uploads')->exists($user_id . '/' . $newName)) {
+            $newName = $originalName . " ($counter)." . $extension;
+            $counter++;
         }
-/*
- *      Генерация уникального имени для файла
- *      $filePath = $file->store('files', 'local');
-*/
-        $filePath = $file->storeAs('files', $newName, 'local');
 
-
-
-        // Проверка на зарегитрированного пользователя
-        $user = Auth::guard('sanctum');
-        if($user->check()) {
-
-        }
+        $filePath = $file->storeAs("$user_id", $newName, 'uploads');
 
         // Создание записи в базе данных о файле
+        $file_id = Str::random(10);
         files::create([
-            'user_id' => 1,
+            'ids' => $file_id,
+            'user_id' => $user_id,
             'path' => $filePath,
             'original_name' => $newName,
         ]);
 
         return response()->json([
-            'message' => 'File uploaded successfully',
+            'success' => true,
+            'message' => 'Success',
+            'url' => $request->getSchemeAndHttpHost() . '/files/' . $file_id,
+            'file_id' => $file_id,
             'data_test' => [
                 'extension'=> $extension,
                 'name' => $originalName,
                 'path' => $filePath,
                 'size' => filesize($file),
-                'url' => Storage::url($filePath),
+                'url' => Storage::path($filePath),
                 'phpinfo' => pathinfo($filePath, PATHINFO_FILENAME),
             ]
         ]);
@@ -93,17 +110,7 @@ class FileController
      */
     public function getFile($fileId)
     {
-/*
-        $file = Auth::user()->files()->findOrFail($fileId);
-        return response()->download(storage_path("app/public/{$file->path}"));
-*/
-//        return Storage::download('files/peLHfpmDpeEpJw0T5TMB5vAfvf2yfvwyOI9pyQoQ.png');
-/*        return response()->json([
-            'sd' => Storage::path('files/peLHfpmDpeEpJw0T5TMB5vAfvf2yfvwyOI9pyQoQ.png') полный патч, не url
-        ]);*/
-        return response()->json([
-            'sd' => Storage::path('files/peLHfpmDpeEpJw0T5TMB5vAfvf2yfvwyOI9pyQoQ.png')
-        ]);
+        return;
     }
 
     /**
@@ -111,15 +118,44 @@ class FileController
      */
     public function updateFile(Request $request, string $id)
     {
-        //
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function deleteFile(string $id)
+    public function deleteFile(string $fileId)
     {
-        //Storage::delete('files/fgdfgs.png');
-        //
+        $disk = 'uploads';
+        $user = Auth::guard('sanctum');
+
+        // Проверяем, существует ли файл
+        try {
+            $file = files::where('ids', $fileId)->first();
+            if ($file->user_id !== $user->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Forbidden',
+                ], 403);
+            }
+
+            $filename = $file->path;
+            if (Storage::disk($disk)->exists($filename)) {
+                Storage::disk($disk)->delete($filename);
+                $file->delete();
+                return response()->json([
+                    'success' => true,
+                    'message' => 'File already deleted'
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Файл не существует'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Bad request'
+        ], 400);
     }
 }
