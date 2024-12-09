@@ -29,6 +29,7 @@ class AuthController extends Controller
             'first_name.required'=> 'field first_name can not be blank',
             'last_name.required'=> 'field last_name can not be blank',
             'password.regex' => 'Пароль должен содержать хотя бы одну строчную букву, одну прописную букву и одну цифру.',
+            'email.unique' => 'email already exists',
         ];
 
         // Валидация
@@ -94,12 +95,6 @@ class AuthController extends Controller
     public function logout()
     {
         $auth = Auth::guard('sanctum');
-
-        if(!$auth->check()){
-            return response()->json([
-               'message' => 'Login failed'
-            ], 403);
-        }
 
         $auth->user()->tokens()->delete();
         return response()->json([

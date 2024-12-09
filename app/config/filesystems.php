@@ -32,9 +32,15 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/private'),
+            'root' => __DIR__ . '/../uploads',
             'serve' => true,
             'throw' => false,
+        ],
+
+        'uploads' => [
+            'driver' => 'local',
+            'root' => base_path('uploads'),  // Путь к вашей кастомной папке
+            'visibility' => 'private',       // Определяет видимость файлов
         ],
 
         'public' => [

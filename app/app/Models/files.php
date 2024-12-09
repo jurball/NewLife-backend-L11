@@ -9,6 +9,12 @@ class files extends Model
     protected $fillable = [
         'user_id',
         'path',
-        'original_name'
+        'original_name',
+        'ids'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
