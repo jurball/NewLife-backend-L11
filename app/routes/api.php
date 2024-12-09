@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Middleware\AuthMiddleware;
+use App\Http\Middleware\DeniedMiddleware;
 
 /*
 Route::prefix('')->group(function() {
@@ -20,13 +21,13 @@ Route::prefix('')->group(function() {
     Route::get('logout', [AuthController::class, 'logout'])->middleware([AuthMiddleware::class]);
 });
 
-Route::prefix('')->group(function() {
+Route::middleware([AuthMiddleware::class])->prefix('')->group(function() {
     Route::post('files', [FileController::class, 'uploadFile']);
     Route::get('files/disk', [FileController::class, 'index']);
 
-    Route::get('files/{fileId}', [FileController::class, 'getFile']);
-    Route::delete('files/{fileId}', [FileController::class, 'deleteFile']);
-    Route::patch('files/{fileId}', [FileController::class, 'updateFile']);
-})->middleware([AuthMiddleware::class]);
+    Route::get('files/{fileId}', [FileController::class, 'getFile'])->middleware([DeniedMiddleware::class]);
+    Route::delete('files/{fileId}', [FileController::class, 'deleteFile'])->middleware([DeniedMiddleware::class]);
+    Route::patch('files/{fileId}', [FileController::class, 'updateFile'])->middleware([DeniedMiddleware::class]);
+});
 
 

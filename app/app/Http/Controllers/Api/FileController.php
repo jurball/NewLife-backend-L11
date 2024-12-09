@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\files;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use function PHPSTORM_META\map;
 
 class FileController
 {
@@ -48,7 +47,7 @@ class FileController
 
         // Валидация входных данных
         $validator = Validator::make($request->all(), [
-            'files' => 'required|file|mimes:png,jpg,jpeg,gif|max:2048',
+            'files' => 'required|file|mimes:png,jpg,jpeg,gif,pdf|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -94,14 +93,6 @@ class FileController
             'message' => 'Success',
             'url' => $request->getSchemeAndHttpHost() . '/files/' . $file_id,
             'file_id' => $file_id,
-            'data_test' => [
-                'extension'=> $extension,
-                'name' => $originalName,
-                'path' => $filePath,
-                'size' => filesize($file),
-                'url' => Storage::path($filePath),
-                'phpinfo' => pathinfo($filePath, PATHINFO_FILENAME),
-            ]
         ]);
     }
 
@@ -110,15 +101,61 @@ class FileController
      */
     public function getFile($fileId)
     {
-        return;
+        $file = files::where('ids', $fileId)->first();
+
+        try {
+            $path = Storage::path($file->path);
+            return response()->download($path);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File not found',
+            ], 404);
+        }
+
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function updateFile(Request $request, string $id)
+    public function updateFile(Request $request, $fileId)
     {
+        $rules = ['name' => 'string|required'];
+        $messages = ['name.required' => "Name is required",];
 
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        $file = files::where('ids', $fileId)->first();
+        $extension = pathinfo($file->path, PATHINFO_EXTENSION);
+
+        $newName = $request->name . '.' . $extension;
+        $newPath = $file->user_id.'/'.$newName;
+
+        $counter = 1;
+        while (Storage::disk('uploads')->exists($newPath)) {
+            $newName = $request->name . " ($counter)." . $extension;
+            $newPath = $file->user_id.'/'.$newName;
+            $counter++;
+        }
+
+        Storage::move($file->path, $newPath);
+
+        $file->update([
+            'original_name' => $newName,
+            'path' =>  $newPath
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Renamed',
+        ]);
     }
 
     /**
