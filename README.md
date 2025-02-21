@@ -60,7 +60,7 @@
   php composer.phar install
 ```
 
-### Шаг 4. Конфигурация .env
+### Шаг 4. Конфигурация .env (создать и скопировать из .env.example)
 
 ```
 DB_CONNECTION=mysql
@@ -76,6 +76,7 @@ DB_PASSWORD=your_password
 ```bash
   php artisan config:clear
   php artisan route:clear
+  php artisan key:generate
 ```
 
 ## Миграции
@@ -102,7 +103,7 @@ DB_PASSWORD=your_password
 
 **_API-prefix:_** _None_ (for example **http://{{host}}/registration**)
 
-Тестовый аккаунт
+Тестовый аккаунт (после миграции выполнить команду для создания тестового аккаунта `$ php artisan db:seed`)
 
 - email: test@gmail.com
 - password: test
