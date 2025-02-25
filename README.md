@@ -1,7 +1,7 @@
 # NewLife Rest api
 
 **Описание:**
-Облачное хранилище с возможностью разграничения прав доступа к файлам.
+Облачное хранилище с возможностью разграничения прав доступа к файлам. (Laravel 11.x)
 
 ## Функции
 
@@ -29,7 +29,6 @@
 - Extension pdo_mysql (зависимость php.ini)
 - Composer installer
 - Laravel 11.x
-- Node.js и npm (необязательно)
 
 ## Установка
 
@@ -77,6 +76,7 @@ DB_PASSWORD=your_password
   php artisan config:clear
   php artisan route:clear
   php artisan key:generate
+  php artisan scribe:generate
 ```
 
 ## Миграции
@@ -496,3 +496,48 @@ Response
 ```
 
 <!--End Server-->
+
+# Тестирования
+Пока ничего нет о тестирования
+
+# Код
+
+Раздел описывает:
+- Контроллеры
+- Промежуточное ПО
+- Модели
+
+## Контроллеры
+- AuthController
+- FileController
+
+### AuthController
+
+### FileController
+
+## Промежуточное ПО
+
+- DeniedMiddleware
+- AuthMiddleware
+- JsonAccept
+
+### DeniedMiddleware
+Проверяет на существования ресурса (если нет отдаст 404),
+проверяет на доступность этого файла пользователя.
+
+### AuthMiddleware
+Проверяет авторизован пользователь? Защищает защищенные маршруты.
+
+### JsonAccept
+Устанавливает Accept на application/json по умолчанию, то есть отдать тело 
+запроса в виде JSON. Используется глобально всего маршрута приложения.
+
+## Модели
+- User
+- Files
+
+### User
+user
+
+### Files
+files

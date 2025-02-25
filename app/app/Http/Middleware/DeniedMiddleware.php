@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\files;
+use App\Models\Files;
 
 class DeniedMiddleware
 {
@@ -17,23 +17,21 @@ class DeniedMiddleware
      */
     public function handle(Request $request, Closure $next, ): Response
     {
+        $FORBIDDEN = Response::HTTP_FORBIDDEN;
         $user_id = Auth::guard('sanctum');
-        $file = files::where('ids', $request->fileId)->first();
 
-        if($file == null) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Not found file!',
-            ], 404);
-        }
+        // Поиск файла (отдаст 404 если не найден файл)
+        $file = Files::where('file_id', $request->fileId)->firstOrFail();
 
+        // Если файл принадлежит пользователю, то продолжаем запрос
         if ($file->user_id === $user_id->id()) {
             return $next($request);
         }
 
+        // Иначе сообщаем что файл недоступен
         return response()->json([
             'success' => false,
-            'message' => 'Forbidden!'
-        ], 422);
+            'message' => 'Forbidden for you'
+        ], $FORBIDDEN);
     }
 }

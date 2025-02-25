@@ -4,13 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class files extends Model
+class Files extends Model
 {
+    protected $table = 'files';
+
     protected $fillable = [
         'user_id',
         'path',
         'original_name',
-        'ids'
+        'file_id'
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'id'
     ];
 
     public function user()

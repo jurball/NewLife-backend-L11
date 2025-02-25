@@ -22,3 +22,5 @@ yarn-error.log
 /.zed
 composer.phar
 .env
+.scribe
+public/docs

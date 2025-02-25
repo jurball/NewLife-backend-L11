@@ -1,33 +1,30 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Middleware\AuthMiddleware;
 use App\Http\Middleware\DeniedMiddleware;
 
-/*
-Route::prefix('')->group(function() {
-    Route::ApiResource('posts', PostController::class);
-})->middleware(['auth:sanctum']);
-*/
+Route::post('registration', [AuthController::class, 'registration']);
+Route::post('authorization', [AuthController::class, 'authorization']);
 
-Route::prefix('')->group(function() {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
-    Route::get('logout', [AuthController::class, 'logout'])->middleware([AuthMiddleware::class]);
-});
+// Защищенный маршрут
+Route::middleware(['auth:sanctum', AuthMiddleware::class])->group(function() {
+    Route::get('logout', [AuthController::class, 'logout']);
 
-Route::middleware([AuthMiddleware::class])->prefix('')->group(function() {
     Route::post('files', [FileController::class, 'uploadFile']);
-    Route::get('files/disk', [FileController::class, 'index']);
+    Route::get('files/disk', [FileController::class, 'getAllFiles']);
+    Route::get('files/shared', [FileController::class, 'shared']);
 
-    Route::get('files/{fileId}', [FileController::class, 'getFile'])->middleware([DeniedMiddleware::class]);
-    Route::delete('files/{fileId}', [FileController::class, 'deleteFile'])->middleware([DeniedMiddleware::class]);
-    Route::patch('files/{fileId}', [FileController::class, 'updateFile'])->middleware([DeniedMiddleware::class]);
+    Route::middleware([DeniedMiddleware::class])->group(function() {
+        Route::get('files/{fileId}', [FileController::class, 'downloadFile']);
+        Route::delete('files/{fileId}', [FileController::class, 'deleteFile']);
+        Route::patch('files/{fileId}', [FileController::class, 'updateNameFile']);
+    });
+
+    Route::post('files/{fileId}/access', [FileController::class, 'addAccessFile']);
+    Route::delete('files/{fileId}/access', [FileController::class, 'deleteAccessFile']);
 });
 
 
