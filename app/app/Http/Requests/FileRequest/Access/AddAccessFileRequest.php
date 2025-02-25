@@ -2,18 +2,11 @@
 
 namespace App\Http\Requests\FileRequest\Access;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AddAccessFileRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return false;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -22,7 +15,12 @@ class AddAccessFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'email' => 'required|email|exists:users,email',
         ];
+    }
+
+    public function failedValidation(Validator $validator)
+    {
+
     }
 }

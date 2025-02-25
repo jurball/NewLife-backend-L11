@@ -25,4 +25,14 @@ class Files extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function access_file()
+    {
+        return $this->belongsTo(Files::class, 'file_id');
+    }
 }

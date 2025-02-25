@@ -33,6 +33,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'created_at',
+        'updated_at',
     ];
 
     /**
@@ -43,8 +45,14 @@ class User extends Authenticatable
 
     public function files()
     {
-        return $this->hasMany(Files::class);
+        return $this->hasMany(Files::class, 'user_id');
     }
+
+    public function access_files()
+    {
+        return $this->hasMany(FileAccess::class, 'owner_id');
+    }
+
     protected function casts(): array
     {
         return [
