@@ -50,6 +50,11 @@ class User extends Authenticatable
 
     public function access_files()
     {
+        return $this->hasMany(FileAccess::class, 'user_id');
+    }
+
+    public function owner_files()
+    {
         return $this->hasMany(FileAccess::class, 'owner_id');
     }
 

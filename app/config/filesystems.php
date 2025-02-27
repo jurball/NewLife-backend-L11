@@ -35,6 +35,7 @@ return [
             'root' => __DIR__ . '/../uploads',
             'serve' => true,
             'throw' => false,
+            'visibility' => 'private',
         ],
 
         'uploads' => [

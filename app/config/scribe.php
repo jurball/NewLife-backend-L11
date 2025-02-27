@@ -4,10 +4,10 @@ use Knuckles\Scribe\Extracting\Strategies;
 
 return [
     // The HTML <title> for the generated documentation. If this is empty, Scribe will infer it from config('app.name').
-    'title' => null,
+    'title' => 'Docs REST API',
 
     // A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
-    'description' => '',
+    'description' => 'Облачное хранилище с возможностью разграничения прав доступа к файлам.',
 
     // The base URL displayed in the docs. If this is empty, Scribe will use the value of config('app.url') at generation time.
     // If you're using `laravel` type, you can set this to a dynamic string, like '{{ config("app.tenant_url") }}' to get a dynamic base URL.
@@ -35,6 +35,8 @@ return [
             // Exclude these routes even if they matched the rules above.
             'exclude' => [
                 // 'GET /health', 'admin.*'
+                'GET /storage/{path}',
+                'GET /sanctum/csrf-cookie'
             ],
         ],
     ],
@@ -90,17 +92,18 @@ return [
         'use_csrf' => false,
 
         // The URL to fetch the CSRF token from (if `use_csrf` is true).
-        'csrf_url' => '/sanctum/csrf-cookie',
+//        'csrf_url' => '/sanctum/csrf-cookie',
+        'csrf_url' => '',
     ],
 
     // How is your API authenticated? This information will be used in the displayed docs, generated examples and response calls.
     'auth' => [
         // Set this to true if ANY endpoints in your API use authentication.
-        'enabled' => false,
+        'enabled' => true,
 
         // Set this to true if your API should be authenticated by default. If so, you must also set `enabled` (above) to true.
         // You can then use @unauthenticated or @authenticated on individual endpoints to change their status from the default.
-        'default' => false,
+        'default' => true,
 
         // Where is the auth value meant to be sent in a request?
         // Options: query, body, basic, bearer, header (for custom header)
@@ -108,7 +111,7 @@ return [
 
         // The name of the auth parameter (e.g. token, key, apiKey) or header (e.g. Authorization, Api-Key).
         'name' => 'key',
-
+//        'name' => 'Authorization',
         // The value of the parameter to be used by Scribe to authenticate response calls.
         // This will NOT be included in the generated documentation. If empty, Scribe will use a random value.
         'use_value' => env('SCRIBE_AUTH_KEY'),
@@ -123,10 +126,6 @@ return [
 
     // Text to place in the "Introduction" section, right after the `description`. Markdown and HTML are supported.
     'intro_text' => <<<INTRO
-This documentation aims to provide all the information you need to work with our API.
-
-<aside>As you scroll, you'll see code examples for working with the API in different programming languages in the dark area to the right (or as part of the content on mobile).
-You can switch the language used with the tabs at the top right (or from the nav menu at the top left on mobile).</aside>
 INTRO
     ,
 
@@ -134,8 +133,9 @@ INTRO
     // Supported options are: bash, javascript, php, python
     // To add a language of your own, see https://scribe.knuckles.wtf/laravel/advanced/example-requests
     'example_languages' => [
-        'bash',
         'javascript',
+        'python',
+        'bash',
     ],
 
     // Generate a Postman collection (v2.1.0) in addition to HTML docs.
@@ -223,7 +223,6 @@ INTRO
                 'override',
                 [
                     'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
                 ]
             ]
         ],

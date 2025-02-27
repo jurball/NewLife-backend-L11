@@ -6,6 +6,7 @@ use App\Http\Requests\FileRequest\Access\AddAccessFileRequest;
 use App\Http\Requests\FileRequest\Access\DeleteAccessFileRequest;
 use App\Http\Requests\FileRequest\DeleteFileRequest;
 use App\Http\Requests\FileRequest\GetAllFilesRequest;
+use App\Http\Requests\FileRequest\SharedRequest;
 use App\Http\Requests\FileRequest\UpdateNameFileRequest;
 use App\Http\Requests\FileRequest\UploadFileRequest;
 use App\Models\FileAccess;
@@ -15,16 +16,68 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Files;
 
+/**
+ * @group Авторизованный пользователь
+ *
+ * APIs для работы с файлами (для авторизованных пользователей)
+ */
 class FileController
 {
+    /**
+     * GET files/disk
+     *
+     * Получить все файлы
+     * @response 200 [
+     * {
+     * "file_id": "qweasd1234",
+     * "name": "Имя файла",
+     * "url": "{{host}}/files/qweasd1234",
+     * "accesses": [
+     * {
+     * "fullname": "name last_name",
+     * "email": "admin@admin.ru",
+     * "type": "author"
+     * },
+     * {
+     * "fullname": "user last_name",
+     * "email": "user@user.ru",
+     * "type": "co-author"
+     * }
+     * ]
+     * },
+     * {
+     * "file_id": "aaaaaaaaaa",
+     * "name": "Имя файла 1",
+     * "url": "{{host}}/files/aaaaaaaaaa",
+     * "accesses": [
+     * {
+     * "fullname": "name last_name",
+     * "email": "admin@admin.ru",
+     * "type": "author"
+     * }
+     * ]
+     * }
+     * ]
+     *
+     */
     public function getAllFiles(GetAllFilesRequest $request): JsonResponse
     {
-        $data = User::find(Auth::id())->files;
-        $response = $request->foreach_files($data, $request->getSchemeAndHttpHost());
+        $fill = User::find(Auth::id())->files;
+        $data = User::find(Auth::id())->owner_files;
+        $owner = User::find(Auth::id());
+
+        $response = $request->foreach_files($data, $fill, $request->getSchemeAndHttpHost(), $owner);
 
         return response()->json($response ?? []);
     }
 
+    /**
+     * GET files/{fileId}
+     *
+     * Получить файл по {fileId}
+     *
+     * @response 200 Браузеру отдается файл
+     */
     public function downloadFile($fileId)
     {
         $file = Files::where('file_id', $fileId)->firstOrFail();
@@ -33,6 +86,12 @@ class FileController
         return response()->download($path);
     }
 
+    /**
+     * @response 200 {
+     * "success": true,
+     * "message": "File already deleted"
+     * }
+     */
     public function deleteFile(DeleteFileRequest $request, string $fileId): JsonResponse
     {
         $file = Files::where('file_id', $fileId)->firstOrFail();
@@ -50,12 +109,34 @@ class FileController
         ], 400);
     }
 
+    /**
+     * @response 200 [
+     * {
+     * "success": true,
+     * "message": "Success",
+     * "name": "Имя загруженного файла",
+     * "url": "{{host}}/files/qweasd1234",
+     * "file_id": "qweasd1234"
+     * },
+     * {
+     * "success": false,
+     * "message": "File not loaded",
+     * "name": "Имя НЕ загруженного файла"
+     * }
+     * ]
+     */
     public function uploadFile(UploadFileRequest $request): JsonResponse
     {
         $responses = $request->files_array_iterate($request->file('files'), $request->getSchemeAndHttpHost(), Auth::id());
         return response()->json($responses);
     }
 
+    /**
+     * @response 200 {
+     * "success": true,
+     * "message": "Renamed"
+     * }
+     */
     public function updateNameFile(UpdateNameFileRequest $request, $fileId): JsonResponse
     {
         // Инициализация
@@ -69,6 +150,21 @@ class FileController
             'message' => 'Renamed',
         ]);
     }
+
+    /**
+     * @response 200 [
+     * {
+     * "fullname": "name last_name",
+     * "email": "admin@admin.ru",
+     * "type": "author"
+     * },
+     * {
+     * "fullname": "user last_name",
+     * "email": "user@user.ru",
+     * "type": "co-author"
+     * }
+     * ]
+     */
 
     public function addAccessFile($fileId, AddAccessFileRequest $request): JsonResponse
     {
@@ -110,6 +206,15 @@ class FileController
         ]);
     }
 
+    /**
+     * @response 200 [
+     * {
+     * "fullname": "name last_name",
+     * "email": "admin@admin.ru",
+     * "type": "author"
+     * }
+     * ]
+     */
     public function deleteAccessFile(DeleteAccessFileRequest $request, $fileId): JsonResponse
     {
         $owner = Auth::user();
@@ -131,31 +236,32 @@ class FileController
 
         return response()->json([
             [
-                 "fullname" => $fullname_owner,
-                 "email" => $owner->email,
-                 "type" => "author"
+                "fullname" => $fullname_owner,
+                "email" => $owner->email,
+                "type" => "author"
             ]
         ]);
     }
 
-    public function shared()
+    /**
+     * @response 200 [
+     * {
+     * "file_id": "qweasd1234",
+     * "name": "Имя файла",
+     * "url": "{{host}}/files/qweasd1234"
+     * },
+     * {
+     * "file_id": "aaaaaaaaaa",
+     * "name": "Имя файла 2",
+     * "url": "{{host}}/files/aaaaaaaaaa"
+     * }
+     * ]
+     */
+    public function shared(SharedRequest $request)
     {
-        $data = User::find(Auth::id())->files;
+        $data = User::find(Auth::id())->access_files;
+        $responses = $request->response_shared_files($data, $request->getSchemeAndHttpHost());
 
-        $responses = [];
-
-        return response()->json($data ?? []);
-//        return response()->json([
-//            [
-//                "file_id" => "aaaaaaaaaa",
-//                "name" => "Имя файла 2",
-//                "url" => "{{host}}/files/aaaaaaaaaa",
-//            ],
-//            [
-//                "file_id" => "qweasd1234",
-//                "name" => "Имя файла",
-//                "url" => "{{host}}/files/qweasd1234",
-//            ]
-//        ]);
+        return response()->json($responses ?? []);
     }
 }

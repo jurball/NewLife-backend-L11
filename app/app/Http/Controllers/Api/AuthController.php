@@ -9,10 +9,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * @group Неавторизованный пользователь
+ *
+ * Endpoints для неавторизованных пользователей (доступна регистрация и авторизация)
+ */
 class AuthController extends Controller
 {
+    /**
+     * @unauthenticated
+     * @response 200 {
+     * "success": true,
+     * "message": "Success",
+     * "token": "you_token"
+     * }
+     *
+     */
     public function registration(RegistrationRequest $request): JsonResponse
     {
         $user = User::create($request->all());
@@ -27,11 +42,18 @@ class AuthController extends Controller
         ], $status_code);
     }
 
+    /**
+     * @unauthenticated
+     * @response 200 {
+     * "email": "admin@admin.ru",
+     * "password": "Qa1"
+     * }
+     */
     public function authorization(Request $request): JsonResponse
     {
         $rules = [
             'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:3',
+            'password' => ['required', 'string'],
         ];
 
         $messages = [
@@ -64,6 +86,16 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @group Авторизованный пользователь
+     * @response 200 {
+     *  "success": true,
+     *  "message": "Logout"
+     * }
+     * @response 403 {
+     *     "message": "Login failed"
+     * }
+     */
     public function logout(): JsonResponse
     {
         $auth = Auth::guard('sanctum');

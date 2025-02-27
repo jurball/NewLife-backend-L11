@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Http\Middleware\JsonAccept;
+use Illuminate\Auth\AuthenticationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         apiPrefix: '',
         commands: __DIR__.'/../routes/console.php',
-        health: '/up',
+//        health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(JsonAccept::class);
@@ -23,6 +24,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'message' => 'Not Found'
                 ], 404);
+            }
+        });
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->is('*')) {
+                return response()->json([
+                    'message' => 'Login failed',
+                ], 403);
             }
         });
     })->withExceptions(function (Exceptions $exceptions) {

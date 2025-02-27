@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rules\Password;
 
 class RegistrationRequest extends FormRequest
 {
@@ -17,9 +18,7 @@ class RegistrationRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string', 'email', 'unique:users'],
-            'password' => ['required', 'string', 'min:3',   'regex:/[a-z]/', // Должна быть хотя бы одна строчная буква
-                                                            'regex:/[A-Z]/',  // Должна быть хотя бы одна прописная буква
-                                                            'regex:/[0-9]/',],
+            'password' => ['required', 'string', Password::min(3)->letters()->mixedCase()->numbers()],
             'first_name' => ['required', 'string'],
             'last_name' => ['required', 'string'],
         ];

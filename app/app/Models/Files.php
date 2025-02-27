@@ -18,7 +18,8 @@ class Files extends Model
     protected $hidden = [
         'created_at',
         'updated_at',
-        'id'
+        'id',
+        'user_id',
     ];
 
     public function user()
@@ -33,6 +34,6 @@ class Files extends Model
 
     public function access_file()
     {
-        return $this->belongsTo(Files::class, 'file_id');
+        return $this->hasMany(FileAccess::class, 'file_id');
     }
 }

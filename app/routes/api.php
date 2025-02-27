@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FileController;
 use App\Http\Middleware\AuthMiddleware;
 use App\Http\Middleware\DeniedMiddleware;
+use App\Http\Middleware\CheckAccessFileUserMiddleware;
 
 Route::post('registration', [AuthController::class, 'registration']);
 Route::post('authorization', [AuthController::class, 'authorization']);
@@ -18,13 +19,14 @@ Route::middleware([AuthMiddleware::class, 'auth:sanctum'])->group(function() {
     Route::get('files/shared', [FileController::class, 'shared']);
 
     Route::middleware([DeniedMiddleware::class])->group(function() {
-        Route::get('files/{fileId}', [FileController::class, 'downloadFile']);
         Route::delete('files/{fileId}', [FileController::class, 'deleteFile']);
         Route::patch('files/{fileId}', [FileController::class, 'updateNameFile']);
 
         Route::post('files/{fileId}/access', [FileController::class, 'addAccessFile']);
         Route::delete('files/{fileId}/access', [FileController::class, 'deleteAccessFile']);
     });
+
+    Route::get('files/{fileId}', [FileController::class, 'downloadFile'])->middleware(CheckAccessFileUserMiddleware::class);
 });
 
 
