@@ -31,7 +31,6 @@ class RegistrationRequest extends FormRequest
             'password.required' => 'field password can not be blank',
             'first_name.required'=> 'field first_name can not be blank',
             'last_name.required'=> 'field last_name can not be blank',
-            'password.regex' => 'Пароль должен содержать хотя бы одну строчную букву, одну прописную букву и одну цифру.',
             'email.unique' => 'email already exists',
         ];
     }
