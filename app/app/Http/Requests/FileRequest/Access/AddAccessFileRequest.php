@@ -4,6 +4,7 @@ namespace App\Http\Requests\FileRequest\Access;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class AddAccessFileRequest extends FormRequest
 {
@@ -21,6 +22,9 @@ class AddAccessFileRequest extends FormRequest
 
     public function failedValidation(Validator $validator)
     {
-
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => $validator->errors(),
+        ]));
     }
 }

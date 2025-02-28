@@ -70,7 +70,7 @@ class UploadFileRequest extends FormRequest
                     'success' => true,
                     'message' => 'File uploaded',
                     'name' => $newName,
-                    'url' => $url . '/' . $file_id,
+                    'url' => $url . '/files/' . $file_id,
                     'file_id' => $file_id,
                 ];
                 $first_file = false;

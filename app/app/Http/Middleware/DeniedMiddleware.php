@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\FileAccess;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,15 +25,13 @@ class DeniedMiddleware
         // Поиск файла (отдаст 404 если не найден файл)
         $file = Files::where('file_id', $request->fileId)->firstOrFail();
 
-        // Если файл принадлежит пользователю, то продолжаем запрос
-        if ($file->user_id === $user_id->id()) {
-            return $next($request);
+        if (!($file->user_id === $user_id->id())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Forbidden for you'
+            ], $FORBIDDEN);
         }
 
-        // Иначе сообщаем что файл недоступен
-        return response()->json([
-            'success' => false,
-            'message' => 'Forbidden for you'
-        ], $FORBIDDEN);
+        return $next($request);
     }
 }

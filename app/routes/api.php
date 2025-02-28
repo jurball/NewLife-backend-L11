@@ -18,6 +18,7 @@ Route::middleware([AuthMiddleware::class, 'auth:sanctum'])->group(function() {
     Route::get('files/disk', [FileController::class, 'getAllFiles']);
     Route::get('files/shared', [FileController::class, 'shared']);
 
+
     Route::middleware([DeniedMiddleware::class])->group(function() {
         Route::delete('files/{fileId}', [FileController::class, 'deleteFile']);
         Route::patch('files/{fileId}', [FileController::class, 'updateNameFile']);
