@@ -59,7 +59,7 @@
   php composer.phar install
 ```
 
-### Шаг 4. Конфигурация .env (создать и скопировать из .env.example)
+### Шаг 4. Конфигурация .env (скопировать из .env.example и вставить .env)
 
 ```
 DB_CONNECTION=mysql
@@ -75,8 +75,13 @@ DB_PASSWORD=your_password
 ```bash
   php artisan config:clear
   php artisan route:clear
+```
+
+### Шаг 6. Важно
+```bash
   php artisan key:generate
   php artisan scribe:generate
+  php artisan migrate
 ```
 
 ## Миграции
@@ -94,21 +99,22 @@ DB_PASSWORD=your_password
 ## Запуск
 
 ```bash
-  php artisan serv --host=127.0.0.1 --port=8000
+  php artisan serve --host=127.0.0.1 --port=8000
 ```
+После генерации **scribe** доступна ссылка `http://127.0.0.1:8000/docs`
 
 <!--End Manual Installation-->
 
 # Сервер
 
-**_API-prefix:_** _None_ (for example **http://{{host}}/registration**)
+**_API-prefix:_** _апи префикс отсутствует_ (for example **http://{{host}}/registration**)
 
 Тестовый аккаунт (после миграции выполнить команду для создания тестового аккаунта `$ php artisan db:seed`)
 
 - email: test@gmail.com
 - password: test
 
-## Общие требования
+## Общие требования сервера
 
 Функционал авторизованного пользователя не должен быть доступен гостю.
 
@@ -238,7 +244,7 @@ Response
 }
 ```
 
-### 3. **_GET_** {{host}} /logout Выйти
+### 3. **_GET_** {{host}} /logout Сброс токена
 
 Request
 
@@ -500,7 +506,7 @@ Response
 # Тестирования
 Пока ничего нет о тестирования
 
-# Код
+# Laravel App 
 
 Раздел описывает:
 - Контроллеры
@@ -508,36 +514,31 @@ Response
 - Модели
 
 ## Контроллеры
-- AuthController
-- FileController
-
-### AuthController
-
-### FileController
+- AuthController - Базовый контроллер для регистрации, авторизации и сброса токена пользователя.
+- FileController - Базовый CRUD контроллер для загрузки файлов на сервер.
 
 ## Промежуточное ПО
 
-- DeniedMiddleware
 - AuthMiddleware
+- CheckAccessFileUserMiddleware
+- DeniedMiddleware
 - JsonAccept
-
-### DeniedMiddleware
-Проверяет на существования ресурса (если нет отдаст 404),
-проверяет на доступность этого файла пользователя.
 
 ### AuthMiddleware
 Проверяет авторизован пользователь? Защищает защищенные маршруты.
+
+### CheckAccessFileUserMiddleware
+Проверяет на соавтора, если соавтор то чтения файла разрешен (применен для маршрута **GET /files/<file_id>** )
+
+### DeniedMiddleware
+Проверяет на существования ресурса (если нет ресурса отдаст 404),
+проверяет также на доступность файла пользователя.
 
 ### JsonAccept
 Устанавливает Accept на application/json по умолчанию, то есть отдать тело 
 запроса в виде JSON. Используется глобально всего маршрута приложения.
 
 ## Модели
-- User
-- Files
-
-### User
-user
-
-### Files
-files
+- User - модель пользователя 
+- Files - модель файлов пользователя
+- FileAccess - модель доступные файлы для пользователя

@@ -186,7 +186,6 @@ class FileController
         // Проверка на попытку добавить самого себя
         if (User::where('email', $request->get('email'))->first()->id === Auth::id()) {
             return response()->json([
-                'success' => false,
                 'message' => 'Forbidden for you'
             ], 403);
         }
@@ -243,7 +242,6 @@ class FileController
 
         if (User::find(Auth::id())->email === $request->get('email')) {
             return response()->json([
-                'success' => false,
                 'message' => 'Forbidden for you'
             ], 403);
         }

@@ -22,12 +22,10 @@ class DeniedMiddleware
         $FORBIDDEN = Response::HTTP_FORBIDDEN;
         $user_id = Auth::guard('sanctum');
 
-        // Поиск файла (отдаст 404 если не найден файл)
         $file = Files::where('file_id', $request->fileId)->firstOrFail();
 
         if (!($file->user_id === $user_id->id())) {
             return response()->json([
-                'success' => false,
                 'message' => 'Forbidden for you'
             ], $FORBIDDEN);
         }
