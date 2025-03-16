@@ -104,7 +104,7 @@ class FileController
         $filepath = $file->path;
 
         if ($request->delete($filepath, $file)) {
-            if(FileAccess::where('file_id', $file->id)->exists()) {
+            if (FileAccess::where('file_id', $file->id)->exists()) {
                 FileAccess::where('file_id', $file->id)->delete();
             }
 
@@ -264,7 +264,7 @@ class FileController
             }
         }
 
-        if(!$flag) {
+        if (!$flag) {
             return response()->json([
                 'message' => 'Not found'
             ], 404);
