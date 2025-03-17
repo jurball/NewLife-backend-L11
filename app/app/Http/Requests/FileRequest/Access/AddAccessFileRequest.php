@@ -25,6 +25,6 @@ class AddAccessFileRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success' => false,
             'message' => $validator->errors(),
-        ]));
+        ], 422));
     }
 }
