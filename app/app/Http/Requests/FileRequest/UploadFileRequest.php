@@ -20,7 +20,14 @@ class UploadFileRequest extends FormRequest
     {
         return [
             'files' => 'required|array',
-            'files.*' => 'file|extensions:png,jpg,jpeg,gif,pdf|max:2048'
+            'files.*' => 'file|extensions:png,jpg,jpeg,gif,pdf|max:4096'
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            "files.*" => "Failed upload. The file must not exceed 4096 MB"
         ];
     }
 

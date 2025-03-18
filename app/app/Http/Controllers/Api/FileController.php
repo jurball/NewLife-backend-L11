@@ -15,7 +15,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Files;
-use function PHPUnit\Framework\isArray;
 
 /**
  * @group Авторизованный пользователь
@@ -183,7 +182,7 @@ class FileController
         $add_user = User::where('email', $request->get('email'))->firstOrFail();
         $file_id = Files::where('file_id', $fileId)->firstOrFail()->id;
 
-        // Проверка на попытку добавить самого себя
+        // Проверяем добавляет самого себя пользователь
         if (User::where('email', $request->get('email'))->first()->id === Auth::id()) {
             return response()->json([
                 'message' => 'Forbidden for you'
